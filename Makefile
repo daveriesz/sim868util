@@ -1,7 +1,7 @@
 
 PROGRAMS = sim868init
 
-CSOURCES = main.c serial.c
+CSOURCES = main.c args.c serial.c
 COBJECTS = $(CSOURCES:.c=.o)
 CFLAGS   = $(COPT) $(CDEF) $(CINC)
 COPT     = 
@@ -14,13 +14,28 @@ LDOPT    =
 LDDIR    = 
 LDLIB    = 
 
+STRLONG  = 10
+
 all: $(PROGRAMS)
 
-sim868init: main.o serial.o
-	$(CC) -o $@ $^ $(LDFLAGS)
+sim868init: $(COBJECTS)
+	@printf " + LD %$(STRLONG)s <== %$(STRLONG)s\n" "$@" "..."
+	@$(CC) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
-	$(CC) -o $@ -c $< $(CFLAGS)
+	@printf " + CC %$(STRLONG)s <== %$(STRLONG)s\n" "$@" "$<"
+	@$(CC) -o $@ -c $< $(CFLAGS)
 
+main.o  : main.c   main.h args_local.h serial_local.h
+args.o  : args.c   main.h args_local.h serial_local.h
+serial.o: serial.c main.h args_local.h serial_local.h
 
+run: $(PROGRAMS)
+	./$< -b 115200 -t 3 -c at ok /dev/ttyUSB0
 
+clean: objclean execlean
+objclean:
+	$(RM) $(COBJECTS)
+execlean:
+	$(RM) $(PROGRAMS)
+        
