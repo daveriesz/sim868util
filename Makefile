@@ -31,7 +31,7 @@ args.o  : args.c   main.h args_local.h serial_local.h
 serial.o: serial.c main.h args_local.h serial_local.h
 
 run: $(PROGRAMS)
-	./$< -b 115200 -t 3 -c at ok /dev/ttyUSB0
+	./$< -b 115200 -t 3 -c at OK /dev/ttyUSB0
 
 clean: objclean execlean
 objclean:

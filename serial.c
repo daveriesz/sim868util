@@ -75,15 +75,43 @@ static int open_serial_device(struct run_parameters *params)
 static int configure_serial_device(struct run_parameters *params)
 {
   struct termios options;
+
   tcgetattr(params->fd, &options);
+
   cfsetispeed(&options, params->baud_rate);
   cfsetospeed(&options, params->baud_rate);
+
   options.c_cflag |= (CLOCAL | CREAD);
+
+  if(1) /* set 8n1 */
+  {
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE ;
+    options.c_cflag |= ~CS8;
+  }
+
   tcsetattr(params->fd, TCSANOW, &options);
   
   return 0;
 }
 
+static int read_write_operations(struct run_parameters *params)
+{
+  struct tx_rx_pair *trp;
+  char *txstr;
+  int len;
+
+  for(trp=params->command_pairs ; trp ; trp=trp->next)
+  {
+    printf("running tx=%s rx=%s\n", trp->tx, trp->rx);
+    len = strlen(trp->tx) + 2;
+    txstr = (char *)malloc(len);
+    memset(txstr, 0, len);
+    sprintf(txstr, "%s\r", trp->tx);
+    write(params->fd, txstr, len-1);
+  }
+}
 
 int run_serial_commands(struct run_parameters *params)
 {
@@ -93,7 +121,7 @@ int run_serial_commands(struct run_parameters *params)
   
   open_serial_device(params);
   configure_serial_device(params);
-  
+  read_write_operations(params);
 
   return 0;
 }
